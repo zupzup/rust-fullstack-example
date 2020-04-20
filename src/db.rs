@@ -16,18 +16,17 @@ const INIT_SQL: &str = "./db.sql";
 const TABLE: &str = "todo";
 const SELECT_FIELDS: &str = "id, name, created_at, checked";
 
-pub async fn init_db(db_pool: &DBPool) -> std::result::Result<(), error::Error> {
+pub async fn init_db(db_pool: &DBPool) -> Result<()> {
     let init_file = fs::read_to_string(INIT_SQL)?;
     let con = get_db_con(db_pool).await?;
-    let _ = con
-        .batch_execute(init_file.as_str())
+    con.batch_execute(init_file.as_str())
         .await
         .map_err(DBInitError)?;
     Ok(())
 }
 
-pub async fn get_db_con(db_pool: &DBPool) -> std::result::Result<DBCon, error::Error> {
-    db_pool.clone().get().await.map_err(DBPoolError)
+pub async fn get_db_con(db_pool: &DBPool) -> Result<DBCon> {
+    db_pool.get().await.map_err(DBPoolError)
 }
 
 pub fn create_pool() -> std::result::Result<DBPool, mobc::Error<Error>> {

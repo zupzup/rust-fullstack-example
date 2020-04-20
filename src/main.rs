@@ -15,7 +15,7 @@ type DBPool = Pool<PgConnectionManager<NoTls>>;
 
 #[tokio::main]
 async fn main() {
-    let db_pool = db::create_pool().expect("database pool can be created.");
+    let db_pool = db::create_pool().expect("database pool can be created");
 
     db::init_db(&db_pool)
         .await
