@@ -43,7 +43,7 @@ pub fn create_pool() -> std::result::Result<DBPool, mobc::Error<Error>> {
 pub async fn fetch_todos(db_pool: &DBPool, search: Option<String>) -> Result<Vec<Todo>> {
     let con = get_db_con(db_pool).await?;
     let where_clause = match search {
-        Some(_) => "WHERE name like '%$1%'",
+        Some(_) => "WHERE name like $1",
         None => "",
     };
     let query = format!(

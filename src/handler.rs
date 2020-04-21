@@ -47,7 +47,7 @@ pub async fn update_todo_handler(
 }
 
 pub async fn delete_todo_handler(id: i32, db_pool: DBPool) -> Result<impl Reply> {
-    &db::delete_todo(&db_pool, id)
+    db::delete_todo(&db_pool, id)
         .await
         .map_err(|e| reject::custom(e))?;
     Ok(StatusCode::OK)
