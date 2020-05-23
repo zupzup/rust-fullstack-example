@@ -5,7 +5,7 @@ authors = ["Mario Zupan <mario@zupzup.org>"]
 edition = "2018"
 
 [dependencies]
-tokio = { version = "0.2", features = ["macros"] }
+tokio = { version = "0.2", features = ["macros", "rt-threaded"] }
 warp = "0.2"
 mobc-postgres = { version = "0.5", features = ["with-chrono-0_4"] }
 mobc = "0.5"
