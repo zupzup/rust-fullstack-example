@@ -21,37 +21,52 @@ async fn main() {
         .await
         .expect("database can be initialized");
 
-    let health_route = warp::path!("health")
-        .and(with_db(db_pool.clone()))
-        .and_then(handler::health_handler);
+    let pet = warp::path!("owner" / i32 / "pet");
+    let owner = warp::path("owner");
 
-    let todo = warp::path("todo");
-    let todo_routes = todo
+    let pet_routes = pet
         .and(warp::get())
-        .and(warp::query())
         .and(with_db(db_pool.clone()))
-        .and_then(handler::list_todos_handler)
-        .or(todo
+        .and_then(handler::list_pets_handler)
+        .or(pet
             .and(warp::post())
             .and(warp::body::json())
             .and(with_db(db_pool.clone()))
-            .and_then(handler::create_todo_handler))
-        .or(todo
+            .and_then(handler::create_pet_handler))
+        .or(pet
             .and(warp::put())
             .and(warp::path::param())
             .and(warp::body::json())
             .and(with_db(db_pool.clone()))
-            .and_then(handler::update_todo_handler))
-        .or(todo
+            .and_then(handler::update_pet_handler))
+        .or(pet
             .and(warp::delete())
             .and(warp::path::param())
             .and(with_db(db_pool.clone()))
-            .and_then(handler::delete_todo_handler));
+            .and_then(handler::delete_pet_handler));
 
-    let routes = health_route
-        .or(todo_routes)
-        .with(warp::cors().allow_any_origin())
-        .recover(error::handle_rejection);
+    let owner_routes = owner
+        .and(warp::get())
+        .and(with_db(db_pool.clone()))
+        .and_then(handler::list_owners_handler)
+        .or(owner
+            .and(warp::post())
+            .and(warp::body::json())
+            .and(with_db(db_pool.clone()))
+            .and_then(handler::create_owner_handler))
+        .or(owner
+            .and(warp::put())
+            .and(warp::path::param())
+            .and(warp::body::json())
+            .and(with_db(db_pool.clone()))
+            .and_then(handler::update_owner_handler))
+        .or(owner
+            .and(warp::delete())
+            .and(warp::path::param())
+            .and(with_db(db_pool.clone()))
+            .and_then(handler::delete_owner_handler));
+
+    let routes = pet_routes.or(owner_routes).recover(error::handle_rejection);
 
     warp::serve(routes).run(([127, 0, 0, 1], 8000)).await;
 }

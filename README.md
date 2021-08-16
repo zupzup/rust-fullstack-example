@@ -1,4 +1,3 @@
-# warp-postgres-example
-An example for writing a simple CRUD Web app using Warp and tokio-postgres
+# rust-fullstack-example 
 
-You can find the tutorial [here](https://blog.logrocket.com/create-an-async-crud-web-service-in-rust-with-warp/)
+An example of creating a full stack web application (backend and frontend) using Rust.
