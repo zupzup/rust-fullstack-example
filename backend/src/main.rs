@@ -4,7 +4,6 @@ use std::convert::Infallible;
 use tokio_postgres::NoTls;
 use warp::{Filter, Rejection};
 
-mod data;
 mod db;
 mod error;
 mod handler;

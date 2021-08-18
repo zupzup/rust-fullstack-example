@@ -1,19 +1,9 @@
-[package]
-name = "rust-fullstack-example"
-version = "0.1.0"
-authors = ["Mario Zupan <mario@zupzup.org>"]
-edition = "2018"
+[workspace]
 
-[dependencies]
-tokio = { version = "=1.6.1", features = ["macros", "rt-multi-thread"] }
-warp = "=0.3.1"
-mobc = "=0.7.2"
-mobc-postgres = { version = "=0.7.0", features = ["with-chrono-0_4", "with-serde_json-1"] }
-serde = {version = "=1.0.126", features = ["derive"] }
-serde_json = "=1.0.64"
-thiserror = "=1.0.24"
-chrono = { version = "=0.4.19", features = ["serde"] }
+members = [
+    "backend",
+    "frontend",
 
-[profile.dev]
-debug = 0
-
+    #Internal
+    "common"
+]

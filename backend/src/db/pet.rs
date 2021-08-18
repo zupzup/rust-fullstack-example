@@ -1,6 +1,7 @@
 use super::{get_db_con, Result};
-use crate::{data::*, error::Error::*, DBPool};
+use crate::{error::Error::*, DBPool};
 use chrono::prelude::*;
+use common::*;
 use mobc_postgres::tokio_postgres::Row;
 
 pub const TABLE: &str = "pet";
