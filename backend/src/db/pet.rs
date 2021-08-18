@@ -40,31 +40,6 @@ pub async fn create(db_pool: &DBPool, owner_id: i32, body: PetRequest) -> Result
     Ok(row_to_pet(&row))
 }
 
-pub async fn update(
-    db_pool: &DBPool,
-    owner_id: i32,
-    id: i32,
-    body: PetUpdateRequest,
-) -> Result<Pet> {
-    let con = get_db_con(db_pool).await?;
-    let query = format!("UPDATE {} SET name = $1, animal_type = $4, birthday = $5, color= $6 WHERE id = $2 AND owner_id = $3 RETURNING *", TABLE);
-    let row = con
-        .query_one(
-            query.as_str(),
-            &[
-                &body.name,
-                &id,
-                &owner_id,
-                &body.animal_type,
-                &body.birthday,
-                &body.color,
-            ],
-        )
-        .await
-        .map_err(DBQueryError)?;
-    Ok(row_to_pet(&row))
-}
-
 pub async fn delete(db_pool: &DBPool, owner_id: i32, id: i32) -> Result<u64> {
     let con = get_db_con(db_pool).await?;
     let query = format!("DELETE FROM {} WHERE id = $1 AND owner_id = $2", TABLE);

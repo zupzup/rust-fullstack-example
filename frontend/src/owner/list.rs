@@ -1,9 +1,10 @@
-use super::super::{Anchor, AppRoute, Todo};
+use super::super::{Anchor, AppRoute};
+use common::*;
 use yew::prelude::*;
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
-    pub todos: Option<Vec<Todo>>,
+    pub owners: Option<Vec<OwnerResponse>>,
 }
 
 pub struct List {
@@ -11,11 +12,11 @@ pub struct List {
 }
 
 impl List {
-    fn render_list(&self, todos: &Option<Vec<Todo>>) -> Html {
-        if let Some(t) = todos {
+    fn render_list(&self, owners: &Option<Vec<OwnerResponse>>) -> Html {
+        if let Some(t) = owners {
             html! {
                 <div class=classes!("list")>
-                    { t.iter().map(|todo| self.view_todo(todo)).collect::<Html>() }
+                    { t.iter().map(|name| self.view_owner(name)).collect::<Html>() }
                 </div>
             }
         } else {
@@ -25,16 +26,11 @@ impl List {
         }
     }
 
-    fn view_todo(&self, todo: &Todo) -> Html {
-        let completed = if todo.completed {
-            Some("completed")
-        } else {
-            None
-        };
+    fn view_owner(&self, owner: &OwnerResponse) -> Html {
         html! {
-            <div class=classes!("list-item", completed)>
-                <Anchor route=AppRoute::Detail(todo.id as i32)>
-                    { &todo.title }
+            <div class=classes!("list-item")>
+                <Anchor route=AppRoute::Detail(owner.id as i32)>
+                    { &owner.name }
                 </Anchor>
             </div>
         }
@@ -54,7 +50,7 @@ impl Component for List {
     fn view(&self) -> Html {
         html! {
             <div>
-                { self.render_list(&self.props.todos)}
+                { self.render_list(&self.props.owners) }
             </div>
         }
     }

@@ -1,6 +1,6 @@
 #![recursion_limit = "256"]
 
-use serde_derive::Deserialize;
+use common::*;
 use wasm_bindgen::prelude::*;
 use yew::format::{Json, Nothing};
 use yew::html;
@@ -11,46 +11,38 @@ use yew::services::{
 };
 use yew_router::{components::RouterAnchor, router::Router, Switch};
 
-mod todo;
+mod owner;
+mod pet;
 
 pub type Anchor = RouterAnchor<AppRoute>;
 
-struct TodoApp {
+struct FullStackApp {
     link: ComponentLink<Self>,
-    todos: Option<Vec<Todo>>,
+    owners: Option<Vec<OwnerResponse>>,
     fetch_task: Option<FetchTask>,
 }
 
 enum Msg {
     MakeReq,
-    Resp(Result<Vec<Todo>, anyhow::Error>),
+    Resp(Result<Vec<OwnerResponse>, anyhow::Error>),
 }
 
 #[derive(Switch, Clone, Debug)]
 pub enum AppRoute {
-    #[to = "/todo/{id}"]
+    #[to = "/app/{id}"]
     Detail(i32),
     #[to = "/"]
     Home,
 }
 
-#[derive(Deserialize, Clone, PartialEq, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct Todo {
-    pub user_id: u64,
-    pub id: u64,
-    pub title: String,
-    pub completed: bool,
-}
-
-impl Component for TodoApp {
+impl Component for FullStackApp {
     type Message = Msg;
     type Properties = ();
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         link.send_message(Msg::MakeReq);
         Self {
             link,
-            todos: None,
+            owners: None,
             fetch_task: None,
         }
     }
@@ -58,13 +50,13 @@ impl Component for TodoApp {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::MakeReq => {
-                self.todos = None;
-                let req = Request::get("https://jsonplaceholder.typicode.com/todos")
+                self.owners = None;
+                let req = Request::get("http://localhost:8000/owner")
                     .body(Nothing)
-                    .expect("can make req to jsonplaceholder");
+                    .expect("can make req to backend");
 
                 let cb = self.link.callback(
-                    |response: Response<Json<Result<Vec<Todo>, anyhow::Error>>>| {
+                    |response: Response<Json<Result<Vec<OwnerResponse>, anyhow::Error>>>| {
                         let Json(data) = response.into_body();
                         Msg::Resp(data)
                     },
@@ -76,7 +68,7 @@ impl Component for TodoApp {
             }
             Msg::Resp(resp) => {
                 if let Ok(data) = resp {
-                    self.todos = Some(data);
+                    self.owners = Some(data);
                 }
             }
         }
@@ -88,11 +80,11 @@ impl Component for TodoApp {
     }
 
     fn view(&self) -> Html {
-        let todos = self.todos.clone();
+        let owners = self.owners.clone();
         let cb = self.link.callback(|_| Msg::MakeReq);
-        ConsoleService::info(&format!("render TodoApp: {:?}", todos));
+        ConsoleService::info(&format!("render FullStackApp: {:?}", owners));
         html! {
-            <div class=classes!("todo")>
+            <div class=classes!("app")>
                 <div class=classes!("nav")>
                     <Anchor route=AppRoute::Home>{"Home"}</Anchor>
                 </div>
@@ -100,10 +92,10 @@ impl Component for TodoApp {
                     <Router<AppRoute, ()>
                         render = Router::render(move |switch: AppRoute| {
                             match switch {
-                                AppRoute::Detail(todo_id) => {
+                                AppRoute::Detail(owner_id) => {
                                     html! {
                                         <div>
-                                            <todo::detail::Detail todo_id=todo_id/>
+                                            <owner::detail::Detail owners=owners.clone() owner_id=owner_id/>
                                         </div>}
                                 }
                                 AppRoute::Home => {
@@ -114,7 +106,7 @@ impl Component for TodoApp {
                                                     { "refresh" }
                                                 </button>
                                             </div>
-                                            <todo::list::List todos=todos.clone()/>
+                                            <owner::list::List owners=owners.clone()/>
                                         </div>
                                     }
                                 }
@@ -129,5 +121,5 @@ impl Component for TodoApp {
 
 #[wasm_bindgen(start)]
 pub fn run_app() {
-    App::<TodoApp>::new().mount_to_body();
+    App::<FullStackApp>::new().mount_to_body();
 }

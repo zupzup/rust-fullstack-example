@@ -2,7 +2,10 @@ use mobc::{Connection, Pool};
 use mobc_postgres::{tokio_postgres, PgConnectionManager};
 use std::convert::Infallible;
 use tokio_postgres::NoTls;
-use warp::{Filter, Rejection};
+use warp::{
+    http::{header, Method},
+    Filter, Rejection,
+};
 
 mod db;
 mod error;
@@ -33,12 +36,6 @@ async fn main() {
             .and(with_db(db_pool.clone()))
             .and_then(handler::create_pet_handler))
         .or(pet
-            .and(warp::put())
-            .and(warp::path::param())
-            .and(warp::body::json())
-            .and(with_db(db_pool.clone()))
-            .and_then(handler::update_pet_handler))
-        .or(pet
             .and(warp::delete())
             .and(warp::path::param())
             .and(with_db(db_pool.clone()))
@@ -52,20 +49,26 @@ async fn main() {
             .and(warp::post())
             .and(warp::body::json())
             .and(with_db(db_pool.clone()))
-            .and_then(handler::create_owner_handler))
-        .or(owner
-            .and(warp::put())
-            .and(warp::path::param())
-            .and(warp::body::json())
-            .and(with_db(db_pool.clone()))
-            .and_then(handler::update_owner_handler))
-        .or(owner
-            .and(warp::delete())
-            .and(warp::path::param())
-            .and(with_db(db_pool.clone()))
-            .and_then(handler::delete_owner_handler));
+            .and_then(handler::create_owner_handler));
 
-    let routes = pet_routes.or(owner_routes).recover(error::handle_rejection);
+    let routes = pet_routes
+        .or(owner_routes)
+        .recover(error::handle_rejection)
+        .with(
+            warp::cors()
+                .allow_credentials(true)
+                .allow_methods(&[
+                    Method::OPTIONS,
+                    Method::GET,
+                    Method::POST,
+                    Method::DELETE,
+                    Method::PUT,
+                ])
+                .allow_headers(vec![header::CONTENT_TYPE, header::ACCEPT])
+                .expose_headers(vec![header::LINK])
+                .max_age(300)
+                .allow_any_origin(),
+        );
 
     warp::serve(routes).run(([127, 0, 0, 1], 8000)).await;
 }
