@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS pet
     owner_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
     animal_type VARCHAR(255) NOT NULL,
-    birthday TIMESTAMPTZ,
     color VARCHAR(255),
 
     CONSTRAINT fk_pet_owner_id FOREIGN KEY (owner_id) REFERENCES pet(id)

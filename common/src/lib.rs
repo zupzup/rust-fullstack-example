@@ -1,4 +1,3 @@
-use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
@@ -33,15 +32,13 @@ pub struct Pet {
     pub name: String,
     pub owner_id: i32,
     pub animal_type: String,
-    pub birthday: Option<DateTime<Utc>>,
     pub color: Option<String>,
 }
 
-#[derive(Deserialize, Clone, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct PetRequest {
     pub name: String,
     pub animal_type: String,
-    pub birthday: Option<DateTime<Utc>>,
     pub color: Option<String>,
 }
 
@@ -50,7 +47,6 @@ pub struct PetResponse {
     pub id: i32,
     pub name: String,
     pub animal_type: String,
-    pub birthday: Option<DateTime<Utc>>,
     pub color: Option<String>,
 }
 
@@ -60,7 +56,6 @@ impl PetResponse {
             id: pet.id,
             name: pet.name,
             animal_type: pet.animal_type,
-            birthday: pet.birthday,
             color: pet.color,
         }
     }

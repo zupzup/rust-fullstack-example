@@ -29,6 +29,8 @@ enum Msg {
 
 #[derive(Switch, Clone, Debug)]
 pub enum AppRoute {
+    #[to = "/app/create-pet/{id}"]
+    CreatePet(i32),
     #[to = "/app/{id}"]
     Detail(i32),
     #[to = "/"]
@@ -92,6 +94,12 @@ impl Component for FullStackApp {
                     <Router<AppRoute, ()>
                         render = Router::render(move |switch: AppRoute| {
                             match switch {
+                                AppRoute::CreatePet(owner_id) => {
+                                    html! {
+                                        <div>
+                                            <pet::create::CreateForm owner_id=owner_id/>
+                                        </div>}
+                                }
                                 AppRoute::Detail(owner_id) => {
                                     html! {
                                         <div>

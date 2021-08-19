@@ -1,3 +1,4 @@
+use super::super::{Anchor, AppRoute};
 use common::*;
 use yew::format::{Json, Nothing};
 use yew::prelude::*;
@@ -34,6 +35,10 @@ impl Detail {
                         {
                             self.view_pet_list(pets)
                         }
+
+                    <Anchor route=AppRoute::CreatePet(o.id as i32)>
+                        { "Create New Pet" }
+                    </Anchor>
                     </div>
                 }
             }
@@ -65,7 +70,6 @@ impl Detail {
             <div class=classes!("list-item")>
                 <div>{ &pet.name }</div>
                 <div>{ &pet.animal_type }</div>
-                // <div>{ &pet.birthday }</div>
                 <div>{ &pet.color.as_ref().unwrap_or(&String::new()) }</div>
             </div>
         }

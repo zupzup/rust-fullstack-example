@@ -1,11 +1,10 @@
 use super::{get_db_con, Result};
 use crate::{error::Error::*, DBPool};
-use chrono::prelude::*;
 use common::*;
 use mobc_postgres::tokio_postgres::Row;
 
 pub const TABLE: &str = "pet";
-const SELECT_FIELDS: &str = "id, owner_id, name, animal_type, birthday, color";
+const SELECT_FIELDS: &str = "id, owner_id, name, animal_type, color";
 
 pub async fn fetch(db_pool: &DBPool, owner_id: i32) -> Result<Vec<Pet>> {
     let con = get_db_con(db_pool).await?;
@@ -23,17 +22,14 @@ pub async fn fetch(db_pool: &DBPool, owner_id: i32) -> Result<Vec<Pet>> {
 
 pub async fn create(db_pool: &DBPool, owner_id: i32, body: PetRequest) -> Result<Pet> {
     let con = get_db_con(db_pool).await?;
-    let query = format!("INSERT INTO {} (name, owner_id, animal_type, birthday, color) VALUES ($1, $2, $3, $4, $5) RETURNING *", TABLE);
+    let query = format!(
+        "INSERT INTO {} (name, owner_id, animal_type, color) VALUES ($1, $2, $3, $4) RETURNING *",
+        TABLE
+    );
     let row = con
         .query_one(
             query.as_str(),
-            &[
-                &body.name,
-                &owner_id,
-                &body.animal_type,
-                &body.birthday,
-                &body.color,
-            ],
+            &[&body.name, &owner_id, &body.animal_type, &body.color],
         )
         .await
         .map_err(DBQueryError)?;
@@ -53,14 +49,12 @@ fn row_to_pet(row: &Row) -> Pet {
     let owner_id: i32 = row.get(1);
     let name: String = row.get(2);
     let animal_type: String = row.get(3);
-    let birthday: Option<DateTime<Utc>> = row.get(4);
-    let color: Option<String> = row.get(5);
+    let color: Option<String> = row.get(4);
     Pet {
         id,
         name,
         owner_id,
         animal_type,
-        birthday,
         color,
     }
 }
