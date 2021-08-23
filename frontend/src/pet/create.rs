@@ -20,18 +20,40 @@ pub struct CreateForm {
     link: ComponentLink<Self>,
     fetch_task: Option<FetchTask>,
     state_pet_name: String,
+    state_animal_type: String,
+    state_color: Option<String>,
 }
-// TODO: state_pet_name handling for all fields
 
 impl CreateForm {
     fn render_form(&self, owner_id: i32) -> Html {
         let edit_name = self
             .link
             .callback(move |e: InputData| Msg::EditName(e.value));
+        let edit_animal_type = self.link.callback(move |e: ChangeData| match e {
+            ChangeData::Select(elem) => Msg::EditAnimalType(elem.value()),
+            _ => unreachable!("only used on select field"),
+        });
+        let edit_color = self
+            .link
+            .callback(move |e: InputData| Msg::EditColor(e.value));
+
         html! {
             <div class=classes!("pet-form")>
-                <input type="text" value={self.state_pet_name.clone()} oninput={edit_name} />
-                <button onclick=self.link.callback(move |_| Msg::MakeReq(owner_id))>{"Submit"}</button>
+                <div>
+                    <input type="text" value={self.state_pet_name.clone()} oninput={edit_name} />
+                </div>
+                <div>
+                    <select onchange={edit_animal_type}>
+                        <option value="cat" selected=true>{ "Cat" }</option>
+                        <option value="dog">{ "Dog" }</option>
+                    </select>
+                </div>
+                <div>
+                    <input type="text" value={self.state_color.clone()} oninput={edit_color} />
+                </div>
+                <div>
+                    <button onclick=self.link.callback(move |_| Msg::MakeReq(owner_id))>{"Submit"}</button>
+                </div>
             </div>
         }
     }
@@ -41,6 +63,8 @@ pub enum Msg {
     MakeReq(i32),
     Resp(Result<PetResponse, anyhow::Error>),
     EditName(String),
+    EditAnimalType(String),
+    EditColor(String),
 }
 
 impl Component for CreateForm {
@@ -52,6 +76,8 @@ impl Component for CreateForm {
             props,
             link,
             state_pet_name: String::new(),
+            state_animal_type: String::from("cat"),
+            state_color: Some(String::from("black")),
             fetch_task: None,
         }
     }
@@ -69,8 +95,8 @@ impl Component for CreateForm {
             Msg::MakeReq(id) => {
                 let body = PetRequest {
                     name: self.state_pet_name.clone(),
-                    animal_type: "cat".to_string(),
-                    color: Some("lucky".to_string()),
+                    animal_type: self.state_animal_type.clone(),
+                    color: self.state_color.clone(),
                 };
                 let req = Request::post(&format!("http://localhost:8000/owner/{}/pet", id))
                     .header("Content-Type", "application/json")
@@ -92,14 +118,20 @@ impl Component for CreateForm {
                 ConsoleService::info(&format!("pet created: {:?}", resp));
                 if let Ok(_) = resp {
                     RouteAgent::dispatcher().send(RouteRequest::ChangeRoute(Route {
-                        route: format!("/owner/{}/pet", self.props.owner_id),
+                        route: format!("/app/{}", self.props.owner_id),
                         state: (),
                     }));
                 }
             }
             Msg::EditName(input) => {
-                ConsoleService::info(&format!("input: {:?}", input));
                 self.state_pet_name = input;
+            }
+            Msg::EditAnimalType(input) => {
+                ConsoleService::info(&format!("input: {:?}", input));
+                self.state_animal_type = input;
+            }
+            Msg::EditColor(input) => {
+                self.state_color = Some(input);
             }
         }
         true

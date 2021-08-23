@@ -24,6 +24,7 @@ async fn main() {
         .expect("database can be initialized");
 
     let pet = warp::path!("owner" / i32 / "pet");
+    let pet_param = warp::path!("owner" / i32 / "pet" / i32);
     let owner = warp::path("owner");
 
     let pet_routes = pet
@@ -35,16 +36,20 @@ async fn main() {
             .and(warp::body::json())
             .and(with_db(db_pool.clone()))
             .and_then(handler::create_pet_handler))
-        .or(pet
+        .or(pet_param
             .and(warp::delete())
-            .and(warp::path::param())
             .and(with_db(db_pool.clone()))
             .and_then(handler::delete_pet_handler));
 
     let owner_routes = owner
         .and(warp::get())
+        .and(warp::path::param())
         .and(with_db(db_pool.clone()))
-        .and_then(handler::list_owners_handler)
+        .and_then(handler::fetch_owner_handler)
+        .or(owner
+            .and(warp::get())
+            .and(with_db(db_pool.clone()))
+            .and_then(handler::list_owners_handler))
         .or(owner
             .and(warp::post())
             .and(warp::body::json())

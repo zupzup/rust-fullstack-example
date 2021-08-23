@@ -1,14 +1,8 @@
 #![recursion_limit = "256"]
 
-use common::*;
 use wasm_bindgen::prelude::*;
-use yew::format::{Json, Nothing};
 use yew::html;
 use yew::prelude::*;
-use yew::services::{
-    fetch::{FetchService, FetchTask, Request, Response},
-    ConsoleService,
-};
 use yew_router::{components::RouterAnchor, router::Router, Switch};
 
 mod owner;
@@ -16,19 +10,14 @@ mod pet;
 
 pub type Anchor = RouterAnchor<AppRoute>;
 
-struct FullStackApp {
-    link: ComponentLink<Self>,
-    owners: Option<Vec<OwnerResponse>>,
-    fetch_task: Option<FetchTask>,
-}
+struct FullStackApp {}
 
-enum Msg {
-    MakeReq,
-    Resp(Result<Vec<OwnerResponse>, anyhow::Error>),
-}
+pub enum Msg {}
 
 #[derive(Switch, Clone, Debug)]
 pub enum AppRoute {
+    #[to = "/app/create-owner"]
+    CreateOwner,
     #[to = "/app/create-pet/{id}"]
     CreatePet(i32),
     #[to = "/app/{id}"]
@@ -40,51 +29,19 @@ pub enum AppRoute {
 impl Component for FullStackApp {
     type Message = Msg;
     type Properties = ();
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        link.send_message(Msg::MakeReq);
-        Self {
-            link,
-            owners: None,
-            fetch_task: None,
-        }
+    fn create(_: Self::Properties, _link: ComponentLink<Self>) -> Self {
+        Self {}
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::MakeReq => {
-                self.owners = None;
-                let req = Request::get("http://localhost:8000/owner")
-                    .body(Nothing)
-                    .expect("can make req to backend");
-
-                let cb = self.link.callback(
-                    |response: Response<Json<Result<Vec<OwnerResponse>, anyhow::Error>>>| {
-                        let Json(data) = response.into_body();
-                        Msg::Resp(data)
-                    },
-                );
-
-                let task = FetchService::fetch(req, cb).expect("can create task");
-                self.fetch_task = Some(task);
-                ()
-            }
-            Msg::Resp(resp) => {
-                if let Ok(data) = resp {
-                    self.owners = Some(data);
-                }
-            }
-        }
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
         true
     }
 
     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
+        true
     }
 
     fn view(&self) -> Html {
-        let owners = self.owners.clone();
-        let cb = self.link.callback(|_| Msg::MakeReq);
-        ConsoleService::info(&format!("render FullStackApp: {:?}", owners));
         html! {
             <div class=classes!("app")>
                 <div class=classes!("nav")>
@@ -94,6 +51,12 @@ impl Component for FullStackApp {
                     <Router<AppRoute, ()>
                         render = Router::render(move |switch: AppRoute| {
                             match switch {
+                                AppRoute::CreateOwner => {
+                                    html! {
+                                        <div>
+                                            <owner::create::CreateForm />
+                                        </div>}
+                                }
                                 AppRoute::CreatePet(owner_id) => {
                                     html! {
                                         <div>
@@ -103,18 +66,17 @@ impl Component for FullStackApp {
                                 AppRoute::Detail(owner_id) => {
                                     html! {
                                         <div>
-                                            <owner::detail::Detail owners=owners.clone() owner_id=owner_id/>
+                                            <owner::detail::Detail owner_id=owner_id/>
                                         </div>}
                                 }
                                 AppRoute::Home => {
                                     html! {
                                         <div>
-                                            <div class=classes!("refresh")>
-                                                <button onclick=cb.clone()>
-                                                    { "refresh" }
-                                                </button>
-                                            </div>
-                                            <owner::list::List owners=owners.clone()/>
+                                            <owner::list::List />
+                                            <br />
+                                            <Anchor route=AppRoute::CreateOwner>
+                                            { "Create New Owner" }
+                                                </Anchor>
                                         </div>
                                     }
                                 }

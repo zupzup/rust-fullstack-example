@@ -6,7 +6,7 @@ pub struct Owner {
     pub name: String,
 }
 
-#[derive(Deserialize, Clone, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct OwnerRequest {
     pub name: String,
 }

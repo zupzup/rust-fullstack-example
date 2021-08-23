@@ -1,19 +1,18 @@
 use super::super::{Anchor, AppRoute};
 use common::*;
+use yew::format::{Json, Nothing};
 use yew::prelude::*;
-
-#[derive(Properties, Clone, PartialEq)]
-pub struct Props {
-    pub owners: Option<Vec<OwnerResponse>>,
-}
+use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 
 pub struct List {
-    props: Props,
+    fetch_task: Option<FetchTask>,
+    owners: Option<Vec<OwnerResponse>>,
+    link: ComponentLink<Self>,
 }
 
 impl List {
-    fn render_list(&self, owners: &Option<Vec<OwnerResponse>>) -> Html {
-        if let Some(t) = owners {
+    fn render_list(&self) -> Html {
+        if let Some(t) = &self.owners {
             html! {
                 <div class=classes!("list")>
                     { t.iter().map(|name| self.view_owner(name)).collect::<Html>() }
@@ -37,30 +36,61 @@ impl List {
     }
 }
 
-pub enum Msg {}
+pub enum Msg {
+    MakeReq,
+    Resp(Result<Vec<OwnerResponse>, anyhow::Error>),
+}
 
 impl Component for List {
-    type Properties = Props;
+    type Properties = ();
     type Message = Msg;
 
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        Self { props }
+    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        link.send_message(Msg::MakeReq);
+        Self {
+            fetch_task: None,
+            link,
+            owners: None,
+        }
     }
 
     fn view(&self) -> Html {
         html! {
             <div>
-                { self.render_list(&self.props.owners) }
+                { self.render_list() }
             </div>
         }
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        match msg {
+            Msg::MakeReq => {
+                self.owners = None;
+                let req = Request::get("http://localhost:8000/owner")
+                    .body(Nothing)
+                    .expect("can make req to backend");
+
+                let cb = self.link.callback(
+                    |response: Response<Json<Result<Vec<OwnerResponse>, anyhow::Error>>>| {
+                        let Json(data) = response.into_body();
+                        Msg::Resp(data)
+                    },
+                );
+
+                let task = FetchService::fetch(req, cb).expect("can create task");
+                self.fetch_task = Some(task);
+                ()
+            }
+            Msg::Resp(resp) => {
+                if let Ok(data) = resp {
+                    self.owners = Some(data);
+                }
+            }
+        }
         true
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props = props;
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
         true
     }
 }

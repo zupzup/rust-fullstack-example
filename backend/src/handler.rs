@@ -31,10 +31,17 @@ pub async fn delete_pet_handler(owner_id: i32, id: i32, db_pool: DBPool) -> Resu
 }
 
 pub async fn list_owners_handler(db_pool: DBPool) -> Result<impl Reply> {
-    let pets = db::owner::fetch(&db_pool).await.map_err(reject::custom)?;
+    let owners = db::owner::fetch(&db_pool).await.map_err(reject::custom)?;
     Ok(json::<Vec<_>>(
-        &pets.into_iter().map(OwnerResponse::of).collect(),
+        &owners.into_iter().map(OwnerResponse::of).collect(),
     ))
+}
+
+pub async fn fetch_owner_handler(id: i32, db_pool: DBPool) -> Result<impl Reply> {
+    let owner = db::owner::fetch_one(&db_pool, id)
+        .await
+        .map_err(reject::custom)?;
+    Ok(json(&OwnerResponse::of(owner)))
 }
 
 pub async fn create_owner_handler(body: OwnerRequest, db_pool: DBPool) -> Result<impl Reply> {
