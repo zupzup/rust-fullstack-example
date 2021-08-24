@@ -10,11 +10,7 @@ use yew_router::{
     prelude::*,
 };
 
-#[derive(Properties, Clone, PartialEq)]
-pub struct Props {}
-
 pub struct CreateForm {
-    props: Props,
     link: ComponentLink<Self>,
     fetch_task: Option<FetchTask>,
     state_name: String,
@@ -46,12 +42,11 @@ pub enum Msg {
 }
 
 impl Component for CreateForm {
-    type Properties = Props;
+    type Properties = ();
     type Message = Msg;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
-            props,
             link,
             state_name: String::new(),
             fetch_task: None,
@@ -104,8 +99,7 @@ impl Component for CreateForm {
         true
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props = props;
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
         true
     }
 }

@@ -2,15 +2,11 @@ use super::super::{Anchor, AppRoute};
 use common::*;
 use yew::format::{Json, Nothing};
 use yew::prelude::*;
-use yew::services::{
-    fetch::{FetchService, FetchTask, Request, Response},
-    ConsoleService,
-};
+use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
     pub owner_id: i32,
-    pub owners: Option<Vec<OwnerResponse>>,
 }
 
 pub struct Detail {
@@ -109,7 +105,6 @@ impl Component for Detail {
     }
 
     fn view(&self) -> Html {
-        ConsoleService::info(&format!("render detail: {:?} {:?}", self.owner, self.pets));
         html! {
             <div>
                 { self.render_detail(&self.owner, &self.pets)}
@@ -161,7 +156,7 @@ impl Component for Detail {
 
                 let cb = self.link.callback(
                     move |response: Response<Json<Result<(), anyhow::Error>>>| {
-                        Msg::RespDeletePet(response, owner_id)
+                        Msg::RespDeletePet(response, pet_id)
                     },
                 );
 
