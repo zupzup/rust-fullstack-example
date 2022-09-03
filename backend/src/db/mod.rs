@@ -30,7 +30,7 @@ pub async fn get_db_con(db_pool: &DBPool) -> Result<DBCon> {
 }
 
 pub fn create_pool() -> std::result::Result<DBPool, mobc::Error<Error>> {
-    let config = Config::from_str("postgres://postgres@127.0.0.1:7878/postgres")?;
+    let config = Config::from_str("postgres://postgres:example@127.0.0.1:7878/postgres")?;
 
     let manager = PgConnectionManager::new(config, NoTls);
     Ok(Pool::builder()
